@@ -14,6 +14,8 @@ function createDom(vDom) {
   let dom
   if(type === REACT_TEXT) {
     dom = document.createTextNode(content)
+  } else if(typeof type === 'function') {
+    return mountFunctionComponent(vDom)
   } else {
     dom = document.createElement(type)
   }
@@ -29,6 +31,13 @@ function createDom(vDom) {
   
 
   return dom
+}
+
+function mountFunctionComponent(vDom) {
+  const {type, props} = vDom
+  let functionVdom = type(props)
+  console.log(type, functionVdom)
+  return createDom(functionVdom)
 }
 
 function updataProps(dom, oldProps, newProps) {
