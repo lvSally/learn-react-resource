@@ -12,7 +12,7 @@ function createElement(type, config, children) {
   let props = {...config}
   if(config) {
     if(arguments.length > 3) {
-      props.children = Array.prototype.slice(arguments, 2).map(toObject)
+      props.children = Array.prototype.slice.call(arguments, 2).map(toObject)
     } else if(arguments.length === 3) {
       props.children = toObject(children)
     }
