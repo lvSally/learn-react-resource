@@ -1,12 +1,18 @@
 import React from './react';
 import ReactDOM from './react-dom';
 
-function FunctionComponect(props) {
-  // return <h1>hello, {props.name}</h1>
-  return React.createElement('h1', {style: {color: 'red'}}, 66)
+class ClassComponet extends React.Component {
+  // constructor(props) {
+  //   super(props)
+  // }
+
+  render() {
+    // return <h1>hello, {this.props.name}</h1>
+    return React.createElement("h1", {}, "hello, ", this.props.name);
+  }
 }
-const element = <FunctionComponect name="dog"/>
-const element1 = React.createElement(FunctionComponect, {
+// const element = <ClassComponet name="dog"/>
+const element1 = React.createElement(ClassComponet, {
   name: "dog"
 });
 console.log(element1)

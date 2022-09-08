@@ -10,11 +10,18 @@ function mount(vDom, container) {
 }
 
 function createDom(vDom) {
+  if(typeof vDom === 'string' || typeof vDom === 'number') {
+    vDom = { type: REACT_TEXT, content: vDom }
+  }
+
   const {type, props, content} = vDom
   let dom
   if(type === REACT_TEXT) {
     dom = document.createTextNode(content)
   } else if(typeof type === 'function') {
+    if(type.isReactComponent) {
+      return mountClassComponent(vDom)
+    }
     return mountFunctionComponent(vDom)
   } else {
     dom = document.createElement(type)
@@ -33,10 +40,16 @@ function createDom(vDom) {
   return dom
 }
 
+function mountClassComponent(vDom) {
+  const {type, props} = vDom
+  let classInstance = new type(props)
+  let classVnode = classInstance.render()
+  return createDom(classVnode)
+}
+
 function mountFunctionComponent(vDom) {
   const {type, props} = vDom
   let functionVdom = type(props)
-  console.log(type, functionVdom)
   return createDom(functionVdom)
 }
 
@@ -64,7 +77,10 @@ function updataProps(dom, oldProps, newProps) {
 }
 
 function changeChildren(children, dom) {
-  if(typeof children === 'object' && children.type) {
+  if(typeof children === 'string' || typeof children === 'number') {
+    children = { type: REACT_TEXT, content: children }
+    mount(children, dom)
+  } else if(typeof children === 'object' && children.type) {
     mount(children, dom)
   } else if(Array.isArray(children)) {
     children.forEach(item => mount(item, dom))
