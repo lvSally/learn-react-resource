@@ -36,6 +36,7 @@ function createDom(vDom) {
     }
   }
   
+  vDom.dom = dom
 
   return dom
 }
@@ -44,6 +45,7 @@ function mountClassComponent(vDom) {
   const {type, props} = vDom
   let classInstance = new type(props)
   let classVnode = classInstance.render()
+  classInstance.oldReaderVnode = classVnode
   return createDom(classVnode)
 }
 
@@ -62,6 +64,8 @@ function updataProps(dom, oldProps, newProps) {
       for(let arr in styleObj) {
         dom.style[arr] = styleObj[arr]
       }
+    } else if(key.startsWith('on')) {
+      dom[key.toLocaleLowerCase()] = newProps[key]
     } else {
       dom[key] = newProps[key]
     }
@@ -85,6 +89,14 @@ function changeChildren(children, dom) {
   } else if(Array.isArray(children)) {
     children.forEach(item => mount(item, dom))
   }
+}
+
+export function towVnode(parentDom, oldVnode, newVnode) {
+  let oldDom = oldVnode.dom
+  let newDom = createDom(newVnode)
+
+  console.log(parentDom, oldDom, newDom)
+  parentDom.replaceChild(newDom, oldDom)
 }
 
 const ReactDOM = {
