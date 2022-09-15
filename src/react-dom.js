@@ -95,7 +95,6 @@ export function towVnode(parentDom, oldVnode, newVnode) {
   let oldDom = oldVnode.dom
   let newDom = createDom(newVnode)
 
-  console.log(parentDom, oldDom, newDom)
   parentDom.replaceChild(newDom, oldDom)
 }
 

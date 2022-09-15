@@ -1,4 +1,15 @@
 import {towVnode} from './react-dom'
+
+export const updateQueue = {
+  isBatchData: false,
+  updaters: [],
+  batchUpdate() {
+    updateQueue.updaters.forEach(updater => updater.updateComponent())
+    updateQueue.isBatchData = false
+    updateQueue.updaters.length = 0
+  }
+}
+
 class Updater{
   constructor(classInstance) {
     this.classInstance = classInstance
@@ -11,7 +22,11 @@ class Updater{
   }
 
   emitUpdate() {
-    this.updateComponent()
+    if(updateQueue.isBatchData) {
+      updateQueue.updaters.push(this)
+    } else {
+      this.updateComponent()
+    }
   }
 
   updateComponent() {
