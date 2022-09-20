@@ -11,11 +11,14 @@ class ClassComponet extends React.Component {
   }
 
   handleClick = () => {
-    updateQueue.isBatchData = true
+    // updateQueue.isBatchData = true
     this.setState({num: this.state.num + 1})
     this.setState({num: this.state.num + 1})
-    updateQueue.isBatchData = false
-    updateQueue.batchUpdate()
+    // updateQueue.isBatchData = false
+    // updateQueue.batchUpdate()
+    setTimeout(() => {
+      this.setState({num: this.state.num + 1})
+    }, 1000)
   }
 
   render() {

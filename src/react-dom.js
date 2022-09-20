@@ -1,4 +1,5 @@
 import {REACT_TEXT} from './stants'
+import addEvent from './event'
 
 function render(vDom, container) {
   mount(vDom, container)
@@ -65,7 +66,8 @@ function updataProps(dom, oldProps, newProps) {
         dom.style[arr] = styleObj[arr]
       }
     } else if(key.startsWith('on')) {
-      dom[key.toLocaleLowerCase()] = newProps[key]
+      // dom[key.toLocaleLowerCase()] = newProps[key]
+      addEvent(dom, key.toLocaleLowerCase(), newProps[key])
     } else {
       dom[key] = newProps[key]
     }
