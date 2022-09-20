@@ -21,7 +21,32 @@ function dispatchEvent(event) {
 
   let handler = store && store[eventType]
   updateQueue.isBatchData = true
-  handler && handler(event)
+  let syntheticBaseEvent = createBaseEvent(event)
+  handler && handler(syntheticBaseEvent)
   updateQueue.isBatchData = false
   updateQueue.batchUpdate()
+}
+
+function createBaseEvent(nativeEvent) {
+  let syntheticBaseEvent = {}
+
+  for(let key in nativeEvent) {
+    syntheticBaseEvent[key] = nativeEvent[key]
+  }
+
+  syntheticBaseEvent.nativeEvent = nativeEvent
+
+  // 兼容处理默认事件
+  syntheticBaseEvent.preventDefault = preventDefault
+
+  return syntheticBaseEvent
+}
+
+function preventDefault(event) {
+  if(!event) {
+    window.event.returnValue = false
+  } 
+  if(event.preventDefault) {
+    event.preventDefault()
+  }
 }

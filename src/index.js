@@ -1,6 +1,6 @@
 import React from './react';
 import ReactDOM from './react-dom';
-import {updateQueue} from './component'
+// import {updateQueue} from './component'
 
 class ClassComponet extends React.Component {
   constructor(props) {
@@ -16,9 +16,9 @@ class ClassComponet extends React.Component {
     this.setState({num: this.state.num + 1})
     // updateQueue.isBatchData = false
     // updateQueue.batchUpdate()
-    setTimeout(() => {
-      this.setState({num: this.state.num + 1})
-    }, 1000)
+    // setTimeout(() => {
+    //   this.setState({num: this.state.num + 1})
+    // }, 1000)
   }
 
   render() {
