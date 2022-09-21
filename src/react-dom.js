@@ -15,7 +15,7 @@ function createDom(vDom) {
     vDom = { type: REACT_TEXT, content: vDom }
   }
 
-  const {type, props, content} = vDom
+  const {type, props, content, ref} = vDom
   let dom
   if(type === REACT_TEXT) {
     dom = document.createTextNode(content)
@@ -37,8 +37,11 @@ function createDom(vDom) {
     }
   }
   
-  vDom.dom = dom
-
+  vDom.dom = dom // 真实dom
+  
+  if(ref) {
+    ref.current = dom
+  }
   return dom
 }
 
