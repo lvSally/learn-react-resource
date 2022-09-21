@@ -1,4 +1,4 @@
-import {REACT_ELEMENT} from './stants'
+import {REACT_ELEMENT, REACT_FORWARDREF} from './stants'
 import { toObject } from './util'
 import Component from './component'
 
@@ -34,10 +34,18 @@ function createRef() {
   }
 }
 
+function forwardRef(render) {
+  return {
+    $$typeof: REACT_FORWARDREF,
+    render
+  }
+}
+
 const React = {
   createElement,
   Component,
-  createRef
+  createRef,
+  forwardRef
 }
 
 export default React
