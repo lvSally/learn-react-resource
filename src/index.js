@@ -1,41 +1,30 @@
 import React from './react';
 import ReactDOM from './react-dom';
 
-class Input1 extends React.Component {
-  constructor(props) {
-    super(props)
-    this.input1 = React.createRef()
-  }
 
-  onFocus = () => {
-    this.input1.current.focus()
-  }
-
+class Three extends React.Component {
   render() {
-    return <div>
-      <input ref={this.input1}/>
-    </div>
+    return <div>three: {this.props.num}</div>
   }
 }
 
-class Form extends React.Component {
+function Tow(props) {
+  return <Three {...props}/>
+}
+
+class One extends React.Component {
   constructor(props) {
     super(props)
-    this.input1 = React.createRef() // 此处为类的实例
-  }
-
-  handleClick = () => {
-    this.input1.current.onFocus()
+    this.state = {
+      num: 0
+    }
   }
 
   render() {
-    return <div>
-      <Input1 ref={this.input1}/>
-      <button onClick={this.handleClick}>Focus</button>
-    </div>
+    return <Tow num={this.props.num}/>
   }
 }
-const element = <Form />
+const element = <One />
 
 ReactDOM.render(
   element,
