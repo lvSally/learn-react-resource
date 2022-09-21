@@ -1,4 +1,4 @@
-import {towVnode} from './react-dom'
+import {towVnode, findDom} from './react-dom'
 
 export const updateQueue = {
   isBatchData: false,
@@ -69,7 +69,7 @@ export default class Component {
   forceUpdate(){
     let newVnode = this.render()
     let oldVnode = this.oldReaderVnode
-    let oldDom = oldVnode.dom
+    let oldDom = findDom(oldVnode)
 
     towVnode(oldDom.parentNode, oldVnode, newVnode)
 

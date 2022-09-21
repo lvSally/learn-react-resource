@@ -18,10 +18,14 @@ class One extends React.Component {
     this.state = {
       num: 0
     }
+
+    setTimeout(() => {
+      this.setState({num: 1})
+    }, 1000)
   }
 
   render() {
-    return <Tow num={this.props.num}/>
+    return <Tow num={this.state.num}/>
   }
 }
 const element = <One />

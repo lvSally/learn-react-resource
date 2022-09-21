@@ -58,13 +58,14 @@ function mountClassComponent(vDom) {
   let classInstance = new type(props)
   if(ref) ref.current = classInstance
   let classVnode = classInstance.render()
-  classInstance.oldReaderVnode = classVnode
+  vDom.oldReaderVnode = classInstance.oldReaderVnode = classVnode
   return createDom(classVnode)
 }
 
 function mountFunctionComponent(vDom) {
   const {type, props} = vDom
   let functionVdom = type(props)
+  vDom.oldReaderVnode = functionVdom
   return createDom(functionVdom)
 }
 
@@ -106,10 +107,20 @@ function changeChildren(children, dom) {
 }
 
 export function towVnode(parentDom, oldVnode, newVnode) {
-  let oldDom = oldVnode.dom
+  let oldDom = findDom(oldVnode)
   let newDom = createDom(newVnode)
 
   parentDom.replaceChild(newDom, oldDom)
+}
+
+export function findDom(vdom) {
+  if(!vdom) return null
+
+  if(vdom.dom) {
+    return vdom.dom
+  }
+
+  return findDom(vdom.oldReaderVnode)
 }
 
 const ReactDOM = {
