@@ -54,8 +54,9 @@ function mountForwardRef(vDom) {
 }
 
 function mountClassComponent(vDom) {
-  const {type, props} = vDom
+  const {type, props, ref} = vDom
   let classInstance = new type(props)
+  if(ref) ref.current = classInstance
   let classVnode = classInstance.render()
   classInstance.oldReaderVnode = classVnode
   return createDom(classVnode)

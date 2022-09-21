@@ -18,27 +18,19 @@ class Input1 extends React.Component {
   }
 }
 
-function Input(props, ref) {
-  return <input ref={ref}/>
-}
-
-let ForwardInput = React.forwardRef(Input)
-// console.log(ForwardInput)
-
 class Form extends React.Component {
   constructor(props) {
     super(props)
-    this.input1 = React.createRef()
+    this.input1 = React.createRef() // 此处为类的实例
   }
 
   handleClick = () => {
-    // this.input1.current.onFocus()
-    this.input1.current.focus()
+    this.input1.current.onFocus()
   }
 
   render() {
     return <div>
-      <ForwardInput ref={this.input1}/>
+      <Input1 ref={this.input1}/>
       <button onClick={this.handleClick}>Focus</button>
     </div>
   }
