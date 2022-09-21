@@ -1,39 +1,29 @@
-import React from './react';
-import ReactDOM from './react-dom';
-// import {updateQueue} from './component'
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 class ClassComponet extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {
-      num: 1
-    }
+    this.input1 = React.createRef()
+    this.input2 = React.createRef()
+    this.input3 = React.createRef()
   }
 
   handleClick = () => {
-    // updateQueue.isBatchData = true
-    this.setState({num: this.state.num + 1})
-    this.setState({num: this.state.num + 1})
-    // updateQueue.isBatchData = false
-    // updateQueue.batchUpdate()
-    // setTimeout(() => {
-    //   this.setState({num: this.state.num + 1})
-    // }, 1000)
+    this.input3.current.value = this.input1.current.value + this.input2.current.value
   }
 
   render() {
     return <div>
-      <h1>{this.state.num}</h1>
-      <button onClick={this.handleClick}>+</button>
+      <input ref={this.input1}/>
+      +
+      <input ref={this.input2}/>
+      <button onClick={this.handleClick}>=</button>
+      <input ref={this.input3}/>
     </div>
-    // return React.createElement("h1", {}, "hello, ", this.props.name);
   }
 }
 const element = <ClassComponet />
-// const element1 = React.createElement(ClassComponet, {
-//   name: "dog"
-// });
-// console.log(element)
 
 ReactDOM.render(
   element,
