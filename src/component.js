@@ -30,9 +30,9 @@ class Updater{
   }
 
   updateComponent() {
-    let {classInstance, peddingState} = this
+    let {classInstance, peddingState, nextProps} = this
     if(peddingState.length > 0) {
-      shouldUpdate(classInstance, this.getState())
+      shouldUpdate(classInstance, this.getState(), nextProps)
     }
   }
 
@@ -49,8 +49,17 @@ class Updater{
   }
 }
 
-function shouldUpdate (classInstance, nextState) {
+function shouldUpdate (classInstance, nextState, nextProps) {
+  let willUpdate = false
+  if(classInstance.shouldComponentUpdate && classInstance.shouldComponentUpdate(nextProps, nextState)) {
+    willUpdate = true
+  }
+
   classInstance.state = nextState
+
+  if(willUpdate && classInstance.componentWillUpdate) {
+    classInstance.componentWillUpdate()
+  }
 
   classInstance.forceUpdate()
 }
@@ -74,5 +83,9 @@ export default class Component {
     towVnode(oldDom.parentNode, oldVnode, newVnode)
 
     this.oldReaderVnode = newVnode
+
+    if(this.componentDidUpdate) {
+      this.componentDidUpdate()
+    }
   }
 }

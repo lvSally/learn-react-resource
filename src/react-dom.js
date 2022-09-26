@@ -8,6 +8,9 @@ function render(vDom, container) {
 function mount(vDom, container) {
   const newDom = createDom(vDom)
   container.appendChild(newDom)
+  if(newDom.componentDidMount) {
+    newDom.componentDidMount()
+  }
 }
 
 function createDom(vDom) {
@@ -38,7 +41,6 @@ function createDom(vDom) {
       changeChildren(children, dom)
     }
   }
-  
   vDom.dom = dom // 真实dom
   
   if(ref) {
@@ -57,9 +59,17 @@ function mountClassComponent(vDom) {
   const {type, props, ref} = vDom
   let classInstance = new type(props)
   if(ref) ref.current = classInstance
+
+  if(classInstance.componentWillMount) {
+    classInstance.componentWillMount()
+  }
   let classVnode = classInstance.render()
   vDom.oldReaderVnode = classInstance.oldReaderVnode = classVnode
-  return createDom(classVnode)
+  let dom = createDom(classVnode)
+  if(classInstance.componentDidMount) {
+    dom.componentDidMount = classInstance.componentDidMount
+  }
+  return dom
 }
 
 function mountFunctionComponent(vDom) {
@@ -106,11 +116,55 @@ function changeChildren(children, dom) {
   }
 }
 
-export function towVnode(parentDom, oldVnode, newVnode) {
-  let oldDom = findDom(oldVnode)
-  let newDom = createDom(newVnode)
+export function towVnode(parentDom, oldVnode, newVnode, nextDom) {
+  // let oldDom = findDom(oldVnode)
+  // let newDom = createDom(newVnode)
 
-  parentDom.replaceChild(newDom, oldDom)
+  // parentDom.replaceChild(newDom, oldDom)
+
+  if(!oldVnode && !newVnode) {
+    return
+  } else if(oldVnode && !newVnode) { // 删除
+    unmountVnode(oldVnode)
+  } else if(!oldVnode && newVnode) { // 添加
+    mountNode(parentDom, newVnode, nextDom)
+  } else if(oldVnode && newVnode && oldVnode.type != newVnode.type) { // 新旧vdom都存在， 类型包括 函数，class, 原生
+    unmountVnode(oldVnode)
+    mountNode(parentDom, newVnode, nextDom)
+  }
+}
+
+function mountNode(parentDom, newVnode, nextDom) {
+  let newDom = findDom(newVnode)
+  if(nextDom) {
+    parentDom.insertBefore(newDom, nextDom)
+  } else {
+    parentDom.appendChild(newDom)
+  }
+
+  if(newVnode.componentDidMount) {
+    newVnode.componentDidMount()
+  }
+}
+
+function unmountVnode(vDom) {
+  let {type, props, ref} = vDom
+  let currentDom = findDom(vDom)
+  if(vDom.classInstance && vDom.classInstance.componentWillUnmount) {
+    vDom.classInstance.componentWillUnmount()
+  }
+
+  if(ref) {
+    ref.current = null
+  }
+  if(props.children) {
+    let children = Array.isArray(props.children) ? props.children : [props.children]
+    children.forEach(unmountVnode)
+  }
+
+  if(currentDom) {
+    currentDom.parentNode.removeChild(currentDom)
+  }
 }
 
 export function findDom(vdom) {
