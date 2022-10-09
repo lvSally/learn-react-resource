@@ -5,7 +5,7 @@ import {updateQueue} from './component'
  * @param {*} eventType 事件类型
  * @param {*} handler 事件处理函数
  */
-export default function addEvnet(dom, eventType, handler) {
+export default function addEvent(dom, eventType, handler) {
   let store = dom.store || (dom.store={})
   store[eventType] = handler
 

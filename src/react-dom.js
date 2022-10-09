@@ -1,4 +1,4 @@
-import {REACT_TEXT, REACT_FORWARDREF} from './stants'
+import {REACT_TEXT, REACT_FORWARDREF, MOVE, REACTNEXT} from './stants'
 import addEvent from './event'
 
 function render(vDom, container) {
@@ -13,7 +13,9 @@ function mount(vDom, container) {
   }
 }
 
-function createDom(vDom) {
+export function createDom(vDom) {
+  // if(!vDom) return
+
   if(typeof vDom === 'string' || typeof vDom === 'number') {
     vDom = { type: REACT_TEXT, content: vDom }
   }
@@ -34,11 +36,11 @@ function createDom(vDom) {
   }
 
   if(props) {
-    updataProps(dom, {}, props)
+    updateProps(dom, {}, props)
 
     let children = props.children
     if(children) {
-      changeChildren(children, dom)
+      changeChildren(children, dom, props)
     }
   }
   vDom.dom = dom // 真实dom
@@ -64,7 +66,7 @@ function mountClassComponent(vDom) {
     classInstance.componentWillMount()
   }
   let classVnode = classInstance.render()
-  vDom.oldReaderVnode = classInstance.oldReaderVnode = classVnode
+  vDom.oldRenderVnode = classInstance.oldRenderVnode = classVnode
   let dom = createDom(classVnode)
   if(classInstance.componentDidMount) {
     dom.componentDidMount = classInstance.componentDidMount
@@ -75,11 +77,11 @@ function mountClassComponent(vDom) {
 function mountFunctionComponent(vDom) {
   const {type, props} = vDom
   let functionVdom = type(props)
-  vDom.oldReaderVnode = functionVdom
+  vDom.oldRenderVnode = functionVdom
   return createDom(functionVdom)
 }
 
-function updataProps(dom, oldProps, newProps) {
+function updateProps(dom, oldProps, newProps) {  
   for(let key in newProps) {
     if(key === 'children') {
       continue
@@ -105,14 +107,20 @@ function updataProps(dom, oldProps, newProps) {
   }
 }
 
-function changeChildren(children, dom) {
+function changeChildren(children, dom, props) {
   if(typeof children === 'string' || typeof children === 'number') {
     children = { type: REACT_TEXT, content: children }
     mount(children, dom)
-  } else if(typeof children === 'object' && children.type) {
+  } else if(typeof children === 'object' && children.type) { // 单个children
+    props.children.mountIndex = 0
     mount(children, dom)
-  } else if(Array.isArray(children)) {
-    children.forEach(item => mount(item, dom))
+  } else if(Array.isArray(children)) {// 多个children
+    children.forEach((item, index) => {
+      if(item) {
+        item.mountIndex = index
+        mount(item, dom)
+      }
+    })
   }
 }
 
@@ -128,10 +136,132 @@ export function towVnode(parentDom, oldVnode, newVnode, nextDom) {
     unmountVnode(oldVnode)
   } else if(!oldVnode && newVnode) { // 添加
     mountNode(parentDom, newVnode, nextDom)
-  } else if(oldVnode && newVnode && oldVnode.type != newVnode.type) { // 新旧vdom都存在， 类型包括 函数，class, 原生
+  } else if(oldVnode && newVnode && oldVnode.type !== newVnode.type) { // 新旧vdom都存在， 类型包括 函数，class, 原生
     unmountVnode(oldVnode)
     mountNode(parentDom, newVnode, nextDom)
+  } else {
+    updateElement(oldVnode, newVnode)
   }
+}
+
+function updateElement(oldVnode, newVnode) {
+  if(oldVnode.type === REACT_TEXT && newVnode.type === REACT_TEXT) {
+    let currentDom = oldVnode.dom = findDom(oldVnode)
+    currentDom.textContent = newVnode.content
+  } else if(typeof oldVnode.type === 'string') {
+    let currentDom = oldVnode.dom = findDom(oldVnode)
+    updateProps(currentDom, oldVnode.props, newVnode.props)
+    updateChildren(currentDom, oldVnode.props.children, newVnode.props.children)
+  } else if(typeof oldVnode.type === 'function') {
+    if(oldVnode.type.isReactComponent) {
+      oldVnode.classInstance = newVnode.classInstance
+      updateClassComponent(oldVnode, newVnode)
+    } else {
+      updateFunctionComponent(oldVnode, newVnode)
+    }
+  }
+}
+
+function updateClassComponent(oldVnode, newVnode) {
+  const parentDom = findDom(oldVnode).parentNode
+
+  let {type, props, ref} = newVnode
+  let classInstance = new type(props)
+  if(ref) {
+    ref.current = classInstance
+  }
+
+  let newRenderVdom = classInstance.render()
+  towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
+
+  // oldVnode.classInstance.oldRenderVnode = newRenderVdom
+  oldVnode.oldRenderVnode = oldVnode.classInstance.oldRenderVnode = newRenderVdom
+}
+
+function updateFunctionComponent(oldVnode, newVnode) {
+  const parentDom = findDom(oldVnode).parentNode
+
+  let {type, props} = newVnode
+  let newRenderVdom = type(props)
+  towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
+
+  oldVnode.oldRenderVnode = newRenderVdom
+}
+
+function updateChildren(parentDom, oldChildren, newChildren) {
+  oldChildren = Array.isArray(oldChildren) ? oldChildren : [oldChildren]
+  newChildren = Array.isArray(newChildren) ? newChildren : [newChildren]
+  // let maxLength = Math.max(oldChildren.length, newChildren.length)
+  // for(let i=0; i<maxLength; i++) {
+  //   let nextDom = oldChildren.find((item, index) => index > i && item && findDom(item))
+  //   towVnode(currentDom, oldChildren[i], newChildren[i], nextDom)
+  // }
+  let keyedOldMap = {}
+  oldChildren.forEach((oldChild, index) => {
+    let oldKey = oldChild.key || index
+    keyedOldMap[oldKey] = oldChild
+  })
+
+  let lastPlaceIndex = 0
+  let patch = []
+  newChildren.forEach((newChild, index) => {
+    newChild.mountIndex = index
+    let newKey = newChild.key || index
+
+    let oldChild = keyedOldMap[newKey]
+    if(oldChild) {
+      updateElement(oldChild, newChild)
+      
+      if(oldChild.mountIndex < lastPlaceIndex) {
+        patch.push({
+          type: MOVE,
+          oldChild,
+          newChild,
+          mountIndex: index
+        })
+      }
+
+      delete keyedOldMap[newKey]
+      lastPlaceIndex = Math.max(oldChild.mountIndex, newChild.mountIndex)
+    } else {
+      patch.push({
+        type: REACTNEXT,
+        newChild,
+        mountIndex: index
+      })
+    }
+  })
+
+  // 处理move
+  let moveChildren = patch.filter(item => item.type === MOVE).map(item => item.oldChild)
+
+  Object.values(keyedOldMap).concat(moveChildren).forEach(oldChild => {
+    let currentDom = findDom(oldChild)
+    parentDom.removeChild(currentDom)
+  })
+
+  // 处理插入
+  patch.forEach(action => {
+    let {type, newChild, oldChild, mountIndex} = action
+    let childNodes = parentDom.childNodes
+    if(type === REACTNEXT) {
+      let newDom = createDom(newChild)
+      let childNode = childNodes[mountIndex]
+      if(childNode) {
+        parentDom.insertBefore(newDom, childNode)
+      } else {
+        parentDom.appendChild(newDom)
+      }
+    } else if(type === MOVE) {
+      let oldDom = findDom(oldChild)
+      let childNode = childNodes[mountIndex]
+      if(childNode) {
+        parentDom.insertBefore(oldDom, childNode)
+      } else {
+        parentDom.appendChild(oldDom)
+      }
+    }
+  })
 }
 
 function mountNode(parentDom, newVnode, nextDom) {
@@ -148,7 +278,7 @@ function mountNode(parentDom, newVnode, nextDom) {
 }
 
 function unmountVnode(vDom) {
-  let {type, props, ref} = vDom
+  let {props, ref} = vDom
   let currentDom = findDom(vDom)
   if(vDom.classInstance && vDom.classInstance.componentWillUnmount) {
     vDom.classInstance.componentWillUnmount()
@@ -169,12 +299,11 @@ function unmountVnode(vDom) {
 
 export function findDom(vdom) {
   if(!vdom) return null
-
   if(vdom.dom) {
     return vdom.dom
   }
 
-  return findDom(vdom.oldReaderVnode)
+  return findDom(vdom.oldRenderVnode)
 }
 
 const ReactDOM = {

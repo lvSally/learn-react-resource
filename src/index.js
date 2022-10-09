@@ -41,7 +41,7 @@ class Parent extends React.Component {
     console.log('3 render(‘组件render’)')
     return <div>
       <div onClick={this.handleFn}>hello world, {this.state.counter}</div>
-      {this.state.counter%4===0 ? <Child num={this.state.counter}/> : null}
+      {this.state.counter%2===0 ? <Child num={this.state.counter}/> : null}
     </div>
   }
 }
@@ -49,16 +49,7 @@ class Parent extends React.Component {
 class Child extends React.Component{
   constructor(props) {
     super(props)
-    this.state = {
-      counter: 0
-    }
     console.log('1子组件 init（‘组件初始化’）')
-  }
-
-  handleFn = () => {
-    this.setState({
-      counter: this.state.counter + 1
-    })
   }
 
   componentWillMount() {
@@ -93,7 +84,7 @@ class Child extends React.Component{
 
   render() {
     console.log('3子组件 render(‘组件render’)')
-    return <div>child:</div>
+    return <div>child:{this.props.num}</div>
   }
 }
 const element = <Parent />

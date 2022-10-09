@@ -1,4 +1,4 @@
-import {towVnode, findDom} from './react-dom'
+import {towVnode, findDom, createDom} from './react-dom'
 
 export const updateQueue = {
   isBatchData: false,
@@ -31,7 +31,7 @@ class Updater{
 
   updateComponent() {
     let {classInstance, peddingState, nextProps} = this
-    if(peddingState.length > 0) {
+    if(nextProps || peddingState.length > 0) {
       shouldUpdate(classInstance, this.getState(), nextProps)
     }
   }
@@ -50,15 +50,22 @@ class Updater{
 }
 
 function shouldUpdate (classInstance, nextState, nextProps) {
-  let willUpdate = false
-  if(classInstance.shouldComponentUpdate && classInstance.shouldComponentUpdate(nextProps, nextState)) {
-    willUpdate = true
+
+  let willUpdate = true
+  if(classInstance.shouldComponentUpdate && !classInstance.shouldComponentUpdate(nextProps, nextState)) {
+    willUpdate = false // 表示也没不更新
   }
 
-  classInstance.state = nextState
-
+  if(nextState) {
+    classInstance.state = nextState
+  }
+  
   if(willUpdate && classInstance.componentWillUpdate) {
     classInstance.componentWillUpdate()
+  }
+
+  if(nextProps) {
+    classInstance.nextProps = nextProps
   }
 
   classInstance.forceUpdate()
@@ -76,16 +83,25 @@ export default class Component {
   }
 
   forceUpdate(){
-    let newVnode = this.render()
-    let oldVnode = this.oldReaderVnode
+    let oldVnode = this.oldRenderVnode
     let oldDom = findDom(oldVnode)
 
+    if(this.constructor.getDerivedStateFromProps) {
+      let newState = this.constructor.getDerivedStateFromProps(this.props, this.state)
+      if(newState) {
+        this.state = {...this.state, ...newState}
+      }
+    }
+
+    let newVnode = this.render()
+    newVnode.dom = createDom(newVnode)
+    let snapshot = this.getSnapshotBeforeUpdate && this.getSnapshotBeforeUpdate()
     towVnode(oldDom.parentNode, oldVnode, newVnode)
 
-    this.oldReaderVnode = newVnode
+    this.oldRenderVnode = newVnode
 
     if(this.componentDidUpdate) {
-      this.componentDidUpdate()
+      this.componentDidUpdate(this.props, this.state, snapshot)
     }
   }
 }
