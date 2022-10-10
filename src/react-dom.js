@@ -1,4 +1,4 @@
-import {REACT_TEXT, REACT_FORWARDREF, MOVE, REACTNEXT} from './stants'
+import {REACT_TEXT, REACT_FORWARDREF, MOVE, REACTNEXT, REACT_PROVIDER, REACT_CONTEXT} from './stants'
 import addEvent from './event'
 
 function render(vDom, container) {
@@ -22,7 +22,11 @@ export function createDom(vDom) {
 
   const {type, props, content, ref} = vDom
   let dom
-  if(type && type.$$typeof === REACT_FORWARDREF) {
+  if(type && type.$$typeof === REACT_CONTEXT) {
+    return mountContextComponent(vDom)
+  }else if(type && type.$$typeof === REACT_PROVIDER) {
+    return mountProviderComponent(vDom)
+  }else if(type && type.$$typeof === REACT_FORWARDREF) {
     return mountForwardRef(vDom)
   }else if(type === REACT_TEXT) {
     dom = document.createTextNode(content)
@@ -51,6 +55,23 @@ export function createDom(vDom) {
   return dom
 }
 
+function mountContextComponent(vDom) {
+  const {type, props} = vDom
+  let context = type._context
+  context._currentValue = props.value
+  let renderVnode = type.children(context._currentValue)
+  vDom.oldRenderVnode = renderVnode
+  return createDom(renderVnode)
+} 
+function mountProviderComponent(vDom) {
+  const {type, props} = vDom
+  let context = type._context
+  context._currentValue = props.value
+  let renderVnode = type.children
+  vDom.oldRenderVnode = renderVnode
+  return createDom(renderVnode)
+} 
+
 function mountForwardRef(vDom) {
   const {type, props, ref} = vDom
   let refVnode = type.render(props,ref)
@@ -58,8 +79,15 @@ function mountForwardRef(vDom) {
 }
 
 function mountClassComponent(vDom) {
-  const {type, props, ref} = vDom
+  const {type, props, ref, content} = vDom
   let classInstance = new type(props)
+  
+  if(content) {
+    classInstance.content = type.contentType._currentValue
+  }
+
+  vDom.classInstance = classInstance
+
   if(ref) ref.current = classInstance
 
   if(classInstance.componentWillMount) {
@@ -145,7 +173,11 @@ export function towVnode(parentDom, oldVnode, newVnode, nextDom) {
 }
 
 function updateElement(oldVnode, newVnode) {
-  if(oldVnode.type === REACT_TEXT && newVnode.type === REACT_TEXT) {
+  if(oldVnode.type === REACT_PROVIDER) {
+    updateProviderComponent(oldVnode, newVnode)
+  } else if(oldVnode.type === REACT_CONTEXT) {
+    updateContextComponent(oldVnode, newVnode)
+  } else if(oldVnode.type === REACT_TEXT && newVnode.type === REACT_TEXT) {
     let currentDom = oldVnode.dom = findDom(oldVnode)
     currentDom.textContent = newVnode.content
   } else if(typeof oldVnode.type === 'string') {
@@ -160,6 +192,29 @@ function updateElement(oldVnode, newVnode) {
       updateFunctionComponent(oldVnode, newVnode)
     }
   }
+}
+
+function updateContextComponent(oldVnode, newVnode) {
+  const parentDom = findDom(oldVnode).parentNode
+
+  let {type, props} = newVnode
+  let context = type._context
+  context._currentValue = props.value
+
+  let newRenderVdom = props.children(context._currentValue)
+  towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
+  oldVnode.oldRenderVnode = newRenderVdom
+}
+function updateProviderComponent(oldVnode, newVnode) {
+  const parentDom = findDom(oldVnode).parentNode
+
+  let {type, props} = newVnode
+  let context = type._context
+  context._currentValue = props.value
+
+  let newRenderVdom = props.children
+  towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
+  oldVnode.oldRenderVnode = newRenderVdom
 }
 
 function updateClassComponent(oldVnode, newVnode) {

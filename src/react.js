@@ -1,4 +1,4 @@
-import {REACT_ELEMENT, REACT_FORWARDREF} from './stants'
+import {REACT_ELEMENT, REACT_FORWARDREF, REACT_CONTEXT, REACT_PROVIDER} from './stants'
 import { toObject } from './util'
 import Component from './component'
 
@@ -41,11 +41,28 @@ function forwardRef(render) {
   }
 }
 
+function createContext() {
+  let context = {
+    $$typeof: REACT_CONTEXT,
+    _currentValue: undefined
+  }
+  context.Consumer = {
+    $$typeof: REACT_CONTEXT,
+    _context: context
+  }
+  context.Provider = {
+    $$typeof: REACT_PROVIDER,
+    _context: context
+  }
+  return context
+}
+
 const React = {
   createElement,
   Component,
   createRef,
-  forwardRef
+  forwardRef,
+  createContext
 }
 
 export default React

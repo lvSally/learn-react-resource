@@ -1,90 +1,46 @@
-import React from './react';
-import ReactDOM from './react-dom';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-class Parent extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      counter: 0
-    }
-    console.log('1 init（‘组件初始化’）')
-  }
+let ColorTheme = React.createContext()
+console.log(ColorTheme)
 
-  handleFn = () => {
-    this.setState({
-      counter: this.state.counter + 1
-    })
-  }
-
-  componentWillMount() {
-    console.log('2 componentWillMount(‘组件挂载之前’)')
-  }
-
-  componentDidMount() {
-    console.log('4 componentDidMount(‘组件挂载完毕’)')
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    console.log('5 shouldComponentUpdate(‘组件是否更新’)')
-    return nextState.counter % 2 === 0
-  }
-
-  componentWillUpdate() {
-    console.log('6 componentWillUpdate(‘组件更新之前’)')
-  }
-
-  componentDidUpdate() {
-    console.log('7 componentDidUpdate(‘组件更新之后’)')
-  }
-
+class Header extends React.Component {
   render() {
-    console.log('3 render(‘组件render’)')
-    return <div>
-      <div onClick={this.handleFn}>hello world, {this.state.counter}</div>
-      {this.state.counter%2===0 ? <Child num={this.state.counter}/> : null}
+    return <ColorTheme.Consumer>
+      {({color}) => <div style={{height: 100, with: 300, border: `4px solid ${color}` }}></div>}
+      
+    </ColorTheme.Consumer>
+  }
+}
+
+class Main extends React.Component {
+  static contextType = ColorTheme
+  render() {
+    return <div style={{height: 300, with: 300, border: `4px solid ${this.context.color}` }}>
+      <button onClick={() => this.context.setColorFn('black')}>变黑</button>
+      <button onClick={() => this.context.setColorFn('red')}>变红</button>
     </div>
   }
 }
 
-class Child extends React.Component{
-  constructor(props) {
-    super(props)
-    console.log('1子组件 init（‘组件初始化’）')
+class Parent extends React.Component {
+  state = {
+    color: 'red'
   }
-
-  componentWillMount() {
-    console.log('2子组件 componentWillMount(‘组件挂载之前’)')
+  setColorFn = (color) => {
+    this.setState({
+      color
+    })
   }
-
-  componentDidMount() {
-    console.log('4子组件 componentDidMount(‘组件挂载完毕’)')
-  }
-
-  componentWillReceiveProps(nextProps, nextState) {
-    console.log(nextProps, nextState)
-    console.log('子组件 componentDidMount(‘子组件props更新’)')
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    console.log('5子组件 shouldComponentUpdate(‘组件是否更新’)')
-    return nextState.counter % 2 === 0
-  }
-
-  componentWillUpdate() {
-    console.log('6子组件 componentWillUpdate(‘组件更新之前’)')
-  }
-
-  componentDidUpdate() {
-    console.log('7子组件 componentDidUpdate(‘组件更新之后’)')
-  }
-
-  componentWillUnmount() {
-    console.log('8子组件 componentDidMount(‘组件卸载’)')
-  }
-
   render() {
-    console.log('3子组件 render(‘组件render’)')
-    return <div>child:{this.props.num}</div>
+    let {color} = this.state
+    let context = {setColorFn: this.setColorFn, color}
+    return <ColorTheme.Provider value={context}>
+      <div style={{height: 500, with: 500, border: `4px solid ${color}` }}>
+        <Header></Header>
+        <Main></Main>
+      </div>
+    </ColorTheme.Provider>
   }
 }
 const element = <Parent />
