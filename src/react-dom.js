@@ -15,7 +15,6 @@ function mount(vDom, container) {
 
 export function createDom(vDom) {
   // if(!vDom) return
-
   if(typeof vDom === 'string' || typeof vDom === 'number') {
     vDom = { type: REACT_TEXT, content: vDom }
   }
@@ -58,8 +57,7 @@ export function createDom(vDom) {
 function mountContextComponent(vDom) {
   const {type, props} = vDom
   let context = type._context
-  context._currentValue = props.value
-  let renderVnode = type.children(context._currentValue)
+  let renderVnode = props.children(context._currentValue)
   vDom.oldRenderVnode = renderVnode
   return createDom(renderVnode)
 } 
@@ -67,7 +65,7 @@ function mountProviderComponent(vDom) {
   const {type, props} = vDom
   let context = type._context
   context._currentValue = props.value
-  let renderVnode = type.children
+  let renderVnode = props.children
   vDom.oldRenderVnode = renderVnode
   return createDom(renderVnode)
 } 
@@ -79,11 +77,11 @@ function mountForwardRef(vDom) {
 }
 
 function mountClassComponent(vDom) {
-  const {type, props, ref, content} = vDom
+  const {type, props, ref} = vDom
   let classInstance = new type(props)
   
-  if(content) {
-    classInstance.content = type.contentType._currentValue
+  if(type.contextType) {
+    classInstance.context = type.contextType._currentValue
   }
 
   vDom.classInstance = classInstance
@@ -173,9 +171,9 @@ export function towVnode(parentDom, oldVnode, newVnode, nextDom) {
 }
 
 function updateElement(oldVnode, newVnode) {
-  if(oldVnode.type === REACT_PROVIDER) {
+  if(oldVnode.type && oldVnode.type.$$typeof === REACT_PROVIDER) {
     updateProviderComponent(oldVnode, newVnode)
-  } else if(oldVnode.type === REACT_CONTEXT) {
+  } else if(oldVnode.type && oldVnode.type.$$typeof === REACT_CONTEXT) {
     updateContextComponent(oldVnode, newVnode)
   } else if(oldVnode.type === REACT_TEXT && newVnode.type === REACT_TEXT) {
     let currentDom = oldVnode.dom = findDom(oldVnode)
@@ -196,10 +194,8 @@ function updateElement(oldVnode, newVnode) {
 
 function updateContextComponent(oldVnode, newVnode) {
   const parentDom = findDom(oldVnode).parentNode
-
   let {type, props} = newVnode
   let context = type._context
-  context._currentValue = props.value
 
   let newRenderVdom = props.children(context._currentValue)
   towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
@@ -207,11 +203,9 @@ function updateContextComponent(oldVnode, newVnode) {
 }
 function updateProviderComponent(oldVnode, newVnode) {
   const parentDom = findDom(oldVnode).parentNode
-
   let {type, props} = newVnode
   let context = type._context
   context._currentValue = props.value
-
   let newRenderVdom = props.children
   towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
   oldVnode.oldRenderVnode = newRenderVdom
@@ -226,11 +220,22 @@ function updateClassComponent(oldVnode, newVnode) {
     ref.current = classInstance
   }
 
+  if(type.contextType) {
+    classInstance.context = type.contextType._currentValue
+  }
+
   let newRenderVdom = classInstance.render()
   towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
 
   // oldVnode.classInstance.oldRenderVnode = newRenderVdom
   oldVnode.oldRenderVnode = oldVnode.classInstance.oldRenderVnode = newRenderVdom
+
+  // let classInstance = newVnode.classInstance = oldVnode.classInstance
+  // if(classInstance.componentWillReceiveProps) {
+  //   classInstance.componentWillReceiveProps(newVnode.props)
+  // }
+
+  // classInstance.updater.emitUpdate()
 }
 
 function updateFunctionComponent(oldVnode, newVnode) {

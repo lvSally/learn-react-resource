@@ -85,6 +85,9 @@ export default class Component {
   forceUpdate(){
     let oldVnode = this.oldRenderVnode
     let oldDom = findDom(oldVnode)
+    if(this.constructor.contextType) {
+      this.context = this.constructor.contextType._currentValue
+    }
 
     if(this.constructor.getDerivedStateFromProps) {
       let newState = this.constructor.getDerivedStateFromProps(this.props, this.state)
