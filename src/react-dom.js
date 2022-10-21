@@ -199,7 +199,7 @@ function updateContextComponent(oldVnode, newVnode) {
 
   let newRenderVdom = props.children(context._currentValue)
   towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
-  oldVnode.oldRenderVnode = newRenderVdom
+  newVnode.oldRenderVnode = newRenderVdom
 }
 function updateProviderComponent(oldVnode, newVnode) {
   const parentDom = findDom(oldVnode).parentNode
@@ -208,7 +208,7 @@ function updateProviderComponent(oldVnode, newVnode) {
   context._currentValue = props.value
   let newRenderVdom = props.children
   towVnode(parentDom, oldVnode.oldRenderVnode, newRenderVdom)
-  oldVnode.oldRenderVnode = newRenderVdom
+  newVnode.oldRenderVnode = newRenderVdom
 }
 
 function updateClassComponent(oldVnode, newVnode) {
