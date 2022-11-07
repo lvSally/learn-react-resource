@@ -1,28 +1,33 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-class Children extends React.Component{
+class CustomButton extends React.Component{
   render () {
-    return <div>
-      <div onClick={this.props.show}>show</div>
-      <div onClick={this.props.hide}>hide</div>
-    </div>
+    return <button className="aaa">{this.props.title}111</button>
   }
 }
 
 function HComponent(Component) {
-  return class extends React.Component {
+  return class extends CustomButton {
     state={
-      show: () => console.log('show'),
-      hide: () => console.log('hide')
+      num: 0
+    }
+    clickFn = () => {
+      this.setState({
+        num: this.state.num + 1
+      })
     }
     render() {
-      return <Component {...this.state} />
+      let superElement = super.render()
+      let newProps = {
+        onClick: this.clickFn
+      }
+      return React.cloneElement(superElement, newProps, this.state.num)
     }
   }
 }
 
-const Element = HComponent(Children)
+const Element = HComponent(CustomButton)
 ReactDOM.render(
   <Element/>,
   document.getElementById('root')
