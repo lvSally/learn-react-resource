@@ -69,9 +69,17 @@ function cloneElement(oldElement, props, children) {
   }
 }
 
+class PureComponent extends Component {
+  shouldComponentUpdate(nextProps, nextState) {
+    // let flag = equalFn()
+    return true // TODO: do sth equal option
+  }
+}
+
 const React = {
   createElement,
   Component,
+  PureComponent,
   createRef,
   forwardRef,
   createContext,
