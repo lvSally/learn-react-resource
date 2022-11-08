@@ -1,34 +1,34 @@
-import React from './react';
-import ReactDOM from './react-dom';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-class CustomButton extends React.Component{
+class Mouse extends React.Component{
+  state = {
+    x: -1,
+    y: -1
+  }
+  moveFn = (event) => {
+    this.setState({
+      x: event.clientX,
+      y: event.clientY,
+    })
+  }
+
   render () {
-    return <button className="aaa">{this.props.title}111</button>
+    return <div onMouseMove={this.moveFn} style={{border: '1px solid #000'}}>move: {this.props.children(this.state)}</div>
   }
 }
 
-function HComponent(Component) {
-  return class extends CustomButton {
-    state={
-      num: 0
-    }
-    clickFn = () => {
-      this.setState({
-        num: this.state.num + 1
-      })
-    }
-    render() {
-      let superElement = super.render()
-      let newProps = {
-        onClick: this.clickFn
-      }
-      return React.cloneElement(superElement, newProps, this.state.num)
-    }
+class Parent extends React.Component{
+  
+  render () {
+    return <div>
+      <Mouse>
+        {({x, y}) => <div>xxoo, {x}, {y}</div>}
+      </Mouse>
+    </div>
   }
 }
-
-const Element = HComponent(CustomButton)
 ReactDOM.render(
-  <Element/>,
+  <Parent/>,
   document.getElementById('root')
 );
