@@ -367,7 +367,8 @@ export function findDom(vdom) {
 }
 
 const ReactDOM = {
-  render
+  render,
+  // createPortal: render // TODO: need do sth spicial
 }
 
 export default ReactDOM
