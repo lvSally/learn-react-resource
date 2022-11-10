@@ -1,8 +1,18 @@
 import {REACT_TEXT, REACT_FORWARDREF, MOVE, REACTNEXT, REACT_PROVIDER, REACT_CONTEXT} from './stants'
 import addEvent from './event'
 
+const hooksState = []
+let hookIndex = 0
+let scheduleUpdate
+
+
 function render(vDom, container) {
   mount(vDom, container)
+
+  scheduleUpdate = () => {
+    hookIndex = 0
+    towVnode(container, vDom, vDom)
+  }
 }
 
 function mount(vDom, container) {
@@ -11,6 +21,18 @@ function mount(vDom, container) {
   if(newDom.componentDidMount) {
     newDom.componentDidMount()
   }
+}
+
+export function useState(initialState) {
+  hooksState[hookIndex] = hooksState[hookIndex] || initialState
+  let currentIndex = hookIndex
+  function setState(newState) {
+    hooksState[currentIndex] = newState
+
+    scheduleUpdate()
+  }
+
+  return [hooksState[hookIndex++], setState]
 }
 
 export function createDom(vDom) {

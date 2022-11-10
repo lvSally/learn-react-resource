@@ -1,35 +1,18 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from './react';
+import ReactDOM from './react-dom';
 
-class Mouse extends React.Component{
-  
-  render () {
-    return <div style={{border: '1px solid #000'}}>
-      child-out
-      {console.log(document.querySelector('#child'))}
-      {document.querySelector('#child') && ReactDOM.createPortal(<div>child from portal</div>, document.querySelector('#child'))}
-    </div>
-  }
+function UseStateDemo() {
+  const [num, setNum] = React.useState(0)
+  const [num1, setNum1] = React.useState(0)
+  return <div>
+    <div>A:{num}</div>
+    <div>B:{num1}</div>
+    <div onClick={() => setNum(num+3)}>A</div>
+    <div onClick={() => setNum1(num+1)}>B</div>
+  </div>
 }
 
-class Parent extends React.Component{
-  state = {
-    num: -1
-  }
-  componentDidMount() {
-    setTimeout(() => {
-      this.setState({num: 1})
-    })
-  }
-  render () {
-    return <div>
-      <div>parent</div>
-      <div id="child"></div>
-      {this.state.num===1 && <Mouse/>}
-    </div>
-  }
-}
 ReactDOM.render(
-  <Parent/>,
+  <UseStateDemo/>,
   document.getElementById('root')
 );

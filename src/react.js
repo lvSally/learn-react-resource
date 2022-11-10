@@ -1,6 +1,7 @@
 import {REACT_ELEMENT, REACT_FORWARDREF, REACT_CONTEXT, REACT_PROVIDER} from './stants'
 import { toObject } from './util'
 import Component from './component'
+import {useState} from './react-dom'
 
 function createElement(type, config, children) {
   let key, ref
@@ -83,7 +84,8 @@ const React = {
   createRef,
   forwardRef,
   createContext,
-  cloneElement
+  cloneElement,
+  useState
 }
 
 export default React
