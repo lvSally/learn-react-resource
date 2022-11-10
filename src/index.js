@@ -1,18 +1,26 @@
 import React from './react';
 import ReactDOM from './react-dom';
 
-function UseStateDemo() {
-  const [num, setNum] = React.useState(0)
-  const [num1, setNum1] = React.useState(0)
+function UseReducer() {
+  let reducer = (state, action) => {
+    switch(action) {
+      case 'add':
+        return {num: state.num + 1}
+      case 'minus':
+        return {num: state.num - 1}
+      default:
+        return state.num
+    }
+  }
+  const [state, dispatch] = React.useReducer(reducer, {num: 0})
   return <div>
-    <div>A:{num}</div>
-    <div>B:{num1}</div>
-    <div onClick={() => setNum(num+3)}>A</div>
-    <div onClick={() => setNum1(num+1)}>B</div>
+    <div>A:{state.num}</div>
+    <div onClick={() => dispatch('add')}>+</div>
+    <div onClick={() => dispatch('minus')}>-</div>
   </div>
 }
 
 ReactDOM.render(
-  <UseStateDemo/>,
+  <UseReducer/>,
   document.getElementById('root')
 );

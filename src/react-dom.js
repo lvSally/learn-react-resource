@@ -35,6 +35,18 @@ export function useState(initialState) {
   return [hooksState[hookIndex++], setState]
 }
 
+export function useReducer(reducer, initialState) {
+  hooksState[hookIndex] = hooksState[hookIndex] || initialState
+  let currentIndex = hookIndex
+  function dispatch(action) {
+    hooksState[currentIndex] = reducer(hooksState[currentIndex], action)
+
+    scheduleUpdate()
+  }
+
+  return [hooksState[hookIndex++], dispatch]
+}
+
 export function createDom(vDom) {
   // if(!vDom) return
   if(typeof vDom === 'string' || typeof vDom === 'number') {
